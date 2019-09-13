@@ -76,6 +76,8 @@ type EnvSettings struct {
 	TLSCertFile string
 	// TLSKeyFile is the path to a TLS key file
 	TLSKeyFile string
+	// Path to password file
+	PasswordFile string
 }
 
 // AddFlags binds flags to the given flagset.
@@ -87,6 +89,7 @@ func (s *EnvSettings) AddFlags(fs *pflag.FlagSet) {
 	fs.BoolVar(&s.Debug, "debug", false, "enable verbose output")
 	fs.StringVar(&s.TillerNamespace, "tiller-namespace", "kube-system", "namespace of Tiller")
 	fs.Int64Var(&s.TillerConnectionTimeout, "tiller-connection-timeout", int64(300), "the duration (in seconds) Helm will wait to establish a connection to tiller")
+	fs.StringVar(&s.PasswordFile, "password-file", "", "password file to encrypt/decrypt vault")
 }
 
 // AddFlagsTLS adds the flags for supporting client side TLS to the given flagset.

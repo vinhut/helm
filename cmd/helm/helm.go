@@ -46,6 +46,8 @@ var (
 
 var globalUsage = `The Kubernetes package manager
 
+============ KMK Version ==============
+
 To begin working with Helm, run the 'helm init' command:
 
 	$ helm init

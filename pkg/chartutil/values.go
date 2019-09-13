@@ -433,6 +433,8 @@ func (v Values) PathValue(ypath string) (interface{}, error) {
 		k := yps[0]
 		if _, ok := vals[k]; ok && !istable(vals[k]) {
 			// key found
+            cobas := fmt.Sprintf("out = %v", vals[yps[0]])
+            log.Println(cobas)
 			return vals[yps[0]], nil
 		}
 		// key not found
@@ -454,6 +456,8 @@ func (v Values) PathValue(ypath string) (interface{}, error) {
 	// check table for key and ensure value is not a table
 	if k, ok := t[sk]; ok && !istable(k) {
 		// key found
+        cobas2 := fmt.Sprintf("out = %v", k)
+        log.Println(cobas2)
 		return k, nil
 	}
 

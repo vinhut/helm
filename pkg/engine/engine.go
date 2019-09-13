@@ -22,6 +22,7 @@ import (
 	"log"
 	"path"
 	"sort"
+    "os"
 	"strings"
 	"text/template"
 
@@ -340,6 +341,7 @@ func recAllTpls(c *chart.Chart, templates map[string]renderable, parentVals char
 		newVals := chartutil.Values{}
 		if vs, err := parentVals.Table("Values"); err == nil {
 			if tmp, err := vs.Table(c.Metadata.Name); err == nil {
+                fmt.Fprintf(os.Stdout, "out: %v\n", tmp)
 				newVals = tmp
 			}
 		}

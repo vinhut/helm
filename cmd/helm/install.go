@@ -343,6 +343,7 @@ func (i *installCmd) run() error {
 		if res.Release.Info.Description != "Dry run complete" {
 			fmt.Fprintf(os.Stdout, "WARNING: %s\n", res.Release.Info.Description)
 		}
+		fmt.Fprintf(os.Stdout, "KMK testing \n")
 		return nil
 	}
 

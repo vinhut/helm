@@ -205,7 +205,7 @@ func (u *upgradeCmd) run() error {
 		// The returned error is a grpc.rpcError that wraps the message from the original error.
 		// So we're stuck doing string matching against the wrapped error, which is nested somewhere
 		// inside of the grpc.rpcError message.
-
+        fmt.Fprintf(u.out, "KMK-Test : begin install \n")
 		if err == nil {
 			if u.namespace == "" {
 				u.namespace = defaultNamespace()
@@ -244,6 +244,7 @@ func (u *upgradeCmd) run() error {
 		}
 	}
 
+    fmt.Fprintf(u.out, "KMK-Test : after install \n")
 	rawVals, err := vals(u.valueFiles, u.values, u.stringValues, u.fileValues, u.certFile, u.keyFile, u.caFile)
 	if err != nil {
 		return err
