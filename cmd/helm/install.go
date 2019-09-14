@@ -260,7 +260,7 @@ func (i *installCmd) run() error {
 	}
 
 	// Check chart requirements to make sure all dependencies are present in /charts
-	chartRequested, err := chartutil.Load(i.chartPath)
+	chartRequested, err := chartutil.LoadChart(i.chartPath, settings.PasswordFile)
 	if err != nil {
 		return prettyError(err)
 	}
@@ -284,7 +284,7 @@ func (i *installCmd) run() error {
 				}
 
 				// Update all dependencies which are present in /charts.
-				chartRequested, err = chartutil.Load(i.chartPath)
+				chartRequested, err = chartutil.LoadChart(i.chartPath, settings.PasswordFile)
 				if err != nil {
 					return prettyError(err)
 				}

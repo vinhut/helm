@@ -31,12 +31,15 @@ import (
 	"strings"
     "reflect"
 
+        "github.com/ghodss/yaml"
 	"github.com/golang/protobuf/ptypes/any"
 
 	"k8s.io/helm/pkg/ignore"
 	"k8s.io/helm/pkg/proto/hapi/chart"
 	"k8s.io/helm/pkg/sympath"
 )
+
+var vaultpass = ""
 
 // Load takes a string name, tries to resolve it to a file or directory, and then loads it.
 //
@@ -60,6 +63,11 @@ func Load(name string) (*chart.Chart, error) {
 	return LoadFile(name)
 }
 
+func LoadChart(name string, pass string) (*chart.Chart, error) {
+
+	vaultpass = pass
+	return Load(name)
+}
 // BufferedFile represents an archive file buffered for later processing.
 type BufferedFile struct {
 	Name string
@@ -175,16 +183,17 @@ func LoadFiles(files []*BufferedFile) (*chart.Chart, error) {
 		} else if f.Name == "values.toml" {
 			return c, errors.New("values.toml is illegal as of 2.0.0-alpha.2")
 		} else if f.Name == "values.yaml" {
-			c.Values = &chart.Config{Raw: string(f.Data)}
-            //fmt.Printf(" KMK test out value = %v\n", c.Values)
-            coba_val, coba_err := ReadValues([]byte(string(f.Data)))
-            if coba_err != nil {
-                 fmt.Errorf("Error %s",coba_err)
-            }
+                        coba_val, coba_err := ReadValues(f.Data)
+                        if coba_err != nil {
+                             fmt.Errorf("Error %s",coba_err)
+                        }
 
-            kmk_value := coba_val.AsMap()
-            kmk_value2 := createNewVal(kmk_value)
-            fmt.Printf(" \nkmk_value = %v\n", kmk_value2 )
+                        kmk_value := coba_val.AsMap()
+                        kmk_value2 := createNewVal(kmk_value)
+
+			yaml_out, _ := yaml.Marshal(kmk_value2)
+			c.Values = &chart.Config{Raw: string(yaml_out)}
+
 		} else if strings.HasPrefix(f.Name, "templates/") {
 			c.Templates = append(c.Templates, &chart.Template{Name: f.Name, Data: f.Data})
 		} else if strings.HasPrefix(f.Name, "charts/") {
@@ -338,13 +347,10 @@ func LoadDir(dir string) (*chart.Chart, error) {
 }
 
 func printVal(v interface{}, depth int) interface{} {
-    //fmt.Printf(" v = %s\n",v)
     typ := reflect.Int
     if v != nil {
         typ = reflect.TypeOf(v).Kind()
     }
-    //if typ == reflect.Int || typ == reflect.String {
-    //    return v
     if typ == reflect.Slice {
         return printSlice(v.([]interface{}), depth+1)
     } else if typ == reflect.Map {
@@ -352,9 +358,8 @@ func printVal(v interface{}, depth int) interface{} {
     }
     if typ == reflect.String {
       if strings.HasPrefix(v.(string), "vault$") {
-          s1 := strings.ReplaceAll(v.(string), " ", "")
-          s2 := strings.ReplaceAll(s1, "\n", "")
-          fmt.Printf("\n Ketemu : %s\n",s2)
+	  clean_vault := strings.TrimPrefix(string_trim(v.(string)), "vault$")
+	  v = decrypt(vaultpass, clean_vault)
       }
     }
     return v
@@ -380,10 +385,6 @@ func createNewVal(kmk_data map[string]interface{}) map[string]interface{} {
     data_baru := make(map[string]interface{})
 
     for k, v := range kmk_data {
-        //fmt.Printf("value :%s ", v)
-        if v == nil {
-           v = "kosong"
-        }
         data_baru[k] = printVal(v,1)
     }
 
