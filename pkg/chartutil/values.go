@@ -83,13 +83,6 @@ func (v Values) AsMap() map[string]interface{} {
 	return v
 }
 
-func (msi Values) AsValues() Values {
-	if msi == nil || len(msi) == 0 {
-		return Values{}
-	}
-	return msi
-}
-
 // Encode writes serialized Values information to the given io.Writer.
 func (v Values) Encode(w io.Writer) error {
 	//return yaml.NewEncoder(w).Encode(v)
