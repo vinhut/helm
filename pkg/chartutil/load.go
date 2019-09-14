@@ -183,17 +183,14 @@ func LoadFiles(files []*BufferedFile) (*chart.Chart, error) {
 		} else if f.Name == "values.toml" {
 			return c, errors.New("values.toml is illegal as of 2.0.0-alpha.2")
 		} else if f.Name == "values.yaml" {
-                        coba_val, coba_err := ReadValues(f.Data)
-                        if coba_err != nil {
-                             fmt.Errorf("Error %s",coba_err)
+                        fval, err := ReadValues(f.Data)
+                        if err != nil {
+                             fmt.Errorf("Error %s", err)
                         }
-
-                        kmk_value := coba_val.AsMap()
-                        kmk_value2 := createNewVal(kmk_value)
-
-			yaml_out, _ := yaml.Marshal(kmk_value2)
-			c.Values = &chart.Config{Raw: string(yaml_out)}
-
+                        // decrypt values
+                        new_value := createNewVal(fval.AsMap())
+			out, err := yaml.Marshal(new_value)
+			c.Values = &chart.Config{Raw: string(out)}
 		} else if strings.HasPrefix(f.Name, "templates/") {
 			c.Templates = append(c.Templates, &chart.Template{Name: f.Name, Data: f.Data})
 		} else if strings.HasPrefix(f.Name, "charts/") {
@@ -346,15 +343,15 @@ func LoadDir(dir string) (*chart.Chart, error) {
 	return LoadFiles(files)
 }
 
-func printVal(v interface{}, depth int) interface{} {
+func checkVal(v interface{}) interface{} {
     typ := reflect.Int
     if v != nil {
         typ = reflect.TypeOf(v).Kind()
     }
     if typ == reflect.Slice {
-        return printSlice(v.([]interface{}), depth+1)
+        return checkSlice(v.([]interface{}))
     } else if typ == reflect.Map {
-        return printMap(v.(map[string]interface{}), depth+1)
+        return checkMap(v.(map[string]interface{}))
     }
     if typ == reflect.String {
       if strings.HasPrefix(v.(string), "vault$") {
@@ -365,29 +362,29 @@ func printVal(v interface{}, depth int) interface{} {
     return v
 }
 
-func printMap(m map[string]interface{}, depth int) map[string]interface{} {
-    vidio_map :=  make(map[string]interface{})
+func checkMap(m map[string]interface{}) map[string]interface{} {
+    inner_map :=  make(map[string]interface{})
     for k, v := range m {
-        vidio_map[k] = printVal(v, depth+1)
+        inner_map[k] = checkVal(v)
     }
-    return vidio_map
+    return inner_map
 }
 
-func printSlice(slc []interface{}, depth int) []interface{} {
-    kmk_slice := make([]interface{},1)
+func checkSlice(slc []interface{}) []interface{} {
+    inner_slice := make([]interface{},1)
     for _, v := range slc {
-        kmk_slice = append(kmk_slice, printVal(v,depth+1))
+        inner_slice = append(inner_slice)
     }
-    return kmk_slice
+    return inner_slice
 }
 
-func createNewVal(kmk_data map[string]interface{}) map[string]interface{} {
-    data_baru := make(map[string]interface{})
+func createNewVal(values_data map[string]interface{}) map[string]interface{} {
+    new_map := make(map[string]interface{})
 
-    for k, v := range kmk_data {
-        data_baru[k] = printVal(v,1)
+    for k, v := range values_data {
+        new_map[k] = checkVal(v,1)
     }
 
-    return data_baru
+    return new_map
 }
 
