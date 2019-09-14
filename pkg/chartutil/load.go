@@ -373,7 +373,7 @@ func checkMap(m map[string]interface{}) map[string]interface{} {
 func checkSlice(slc []interface{}) []interface{} {
     inner_slice := make([]interface{},1)
     for _, v := range slc {
-        inner_slice = append(inner_slice)
+        inner_slice = append(inner_slice, checkVal(v))
     }
     return inner_slice
 }
@@ -382,7 +382,7 @@ func createNewVal(values_data map[string]interface{}) map[string]interface{} {
     new_map := make(map[string]interface{})
 
     for k, v := range values_data {
-        new_map[k] = checkVal(v,1)
+        new_map[k] = checkVal(v)
     }
 
     return new_map
