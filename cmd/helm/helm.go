@@ -150,6 +150,10 @@ func newRootCmd(args []string) *cobra.Command {
 
 		// Deprecated
 		markDeprecated(newRepoUpdateCmd(out), "use 'helm repo update'\n"),
+
+        //encrypt & decrypt
+        newEncryptCmd(nil, out),
+        newDecryptCmd(nil, out),
 	)
 
 	flags.Parse(args)

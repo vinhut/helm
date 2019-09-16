@@ -31,7 +31,6 @@ import (
 	"strings"
     "reflect"
 
-        "github.com/ghodss/yaml"
 	"github.com/golang/protobuf/ptypes/any"
 
 	"k8s.io/helm/pkg/ignore"
@@ -183,14 +182,15 @@ func LoadFiles(files []*BufferedFile) (*chart.Chart, error) {
 		} else if f.Name == "values.toml" {
 			return c, errors.New("values.toml is illegal as of 2.0.0-alpha.2")
 		} else if f.Name == "values.yaml" {
-                        fval, err := ReadValues(f.Data)
-                        if err != nil {
-                             fmt.Errorf("Error %s", err)
-                        }
-                        // decrypt values
-                        new_value := createNewVal(fval.AsMap())
-			out, err := yaml.Marshal(new_value)
-			c.Values = &chart.Config{Raw: string(out)}
+            fval, err := ReadValues(f.Data)
+            if err != nil {
+                 fmt.Errorf("Error %s", err)
+            }
+            // decrypt values
+            new_value := createNewVal(fval)
+		    out, err := new_value.YAML()
+            fmt.Println(" out yaml = " + string(out))
+			c.Values = &chart.Config{Raw: out}
 		} else if strings.HasPrefix(f.Name, "templates/") {
 			c.Templates = append(c.Templates, &chart.Template{Name: f.Name, Data: f.Data})
 		} else if strings.HasPrefix(f.Name, "charts/") {
@@ -355,8 +355,8 @@ func checkVal(v interface{}) interface{} {
     }
     if typ == reflect.String {
       if strings.HasPrefix(v.(string), "vault$") {
-	  clean_vault := strings.TrimPrefix(string_trim(v.(string)), "vault$")
-	  v = decrypt(vaultpass, clean_vault)
+          clean_vault := String_trim(v.(string))
+          v, _ = Decrypt(vaultpass, clean_vault)
       }
     }
     return v
@@ -371,14 +371,17 @@ func checkMap(m map[string]interface{}) map[string]interface{} {
 }
 
 func checkSlice(slc []interface{}) []interface{} {
-    inner_slice := make([]interface{},1)
+    inner_slice := make([]interface{},0)
     for _, v := range slc {
+        if v == nil {
+           return inner_slice
+        }
         inner_slice = append(inner_slice, checkVal(v))
     }
     return inner_slice
 }
 
-func createNewVal(values_data map[string]interface{}) map[string]interface{} {
+func createNewVal(values_data map[string]interface{}) Values {
     new_map := make(map[string]interface{})
 
     for k, v := range values_data {
