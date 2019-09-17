@@ -251,7 +251,7 @@ func (u *upgradeCmd) run() error {
 	}
 
 	// Check chart requirements to make sure all dependencies are present in /charts
-	ch, err := chartutil.Load(chartPath)
+	ch, err := chartutil.LoadChart(chartPath, settings.PasswordFile)
 	if err == nil {
 		if req, err := chartutil.LoadRequirements(ch); err == nil {
 			if err := renderutil.CheckDependencies(ch, req); err != nil {
