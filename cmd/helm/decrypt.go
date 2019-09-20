@@ -66,7 +66,6 @@ func (e *decryptCmd) run() error {
     decrypt_content := readDecryptFile(e.decrypt_filepath)
     decrypt_content = chartutil.String_trim(decrypt_content)
     decrypt_out, err := chartutil.Decrypt(settings.PasswordFile, decrypt_content)
-    fmt.Println(decrypt_out)
     return err
 }
 
